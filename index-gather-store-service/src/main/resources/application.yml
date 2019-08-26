@@ -1,0 +1,14 @@
+feign:
+  hystrix:
+    enabled: true
+spring:
+  redis:
+    host: 139.199.225.229
+    port: 6379
+    jedis:
+      pool:
+        max-active: 100
+        max-idle: 10
+        max-wait: 1000000
+    timeout: 50000
+    database: 0
