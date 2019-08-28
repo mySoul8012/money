@@ -15,17 +15,18 @@ public class IndexController {
     @Autowired
     IndexService indexService;
 
-    @GetMapping("/getCodes")
-    @HystrixCommand(fallbackMethod = "third_part_not_connected")
-    public List<Index> get() throws Exception {
-        return indexService.fetch_indexes_from_third_part();
+    @GetMapping("/freshCodes")
+    public String fresh() throws Exception {
+        indexService.fresh();
+        return "fresh codes successfully";
     }
-
-    public List<Index> third_part_not_connected(){
-        System.out.println("third_part_not_connected()");
-        Index index= new Index();
-        index.setCode("000000");
-        index.setName("无效指数代码");
-        return CollectionUtil.toList(index);
+    @GetMapping("/getCodes")
+    public List<Index> get() throws Exception {
+        return indexService.get();
+    }
+    @GetMapping("/removeCodes")
+    public String remove() throws Exception {
+        indexService.remove();
+        return "remove codes successfully";
     }
 }
