@@ -26,7 +26,6 @@ public class RedisCacheConfig {
         this.timeToLive = timeToLive;
     }
 
-
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory factory) {
         RedisSerializer<String> redisSerializer = new StringRedisSerializer();

@@ -21,7 +21,8 @@ public class IndexDataController {
 		indexDataService.fresh(code);
 		return "fresh index data successfully";
 	}
-	@GetMapping("/getIndexData/{code}")
+
+	@GetMapping("/data/{code}")
 	public List<IndexData> get(@PathVariable("code") String code) throws Exception {
 		return indexDataService.get(code);
 	}

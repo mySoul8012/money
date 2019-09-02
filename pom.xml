@@ -13,6 +13,9 @@
       <module>third-part-index-data-project</module>
       <module>index-gather-store-service</module>
         <module>index-codes-service</module>
+	    <module>Index-Data-Service1</module>
+      <module>Index-Data-Service2</module>
+	    <module>index-zuul-service</module>
     </modules>
 
     <name>money</name>
