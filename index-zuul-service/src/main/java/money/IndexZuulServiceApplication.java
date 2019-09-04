@@ -14,7 +14,6 @@ public class IndexZuulServiceApplication {
     public static void main(String[] args) {
         int port = 8031;
         new SpringApplicationBuilder(IndexZuulServiceApplication.class).properties("server.port=" + port).run(args);
-
     }
 
 }

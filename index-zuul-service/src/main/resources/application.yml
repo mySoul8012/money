@@ -10,3 +10,16 @@ zuul:
     api-a:
       path: /api-codes/**
       serviceId: INDEX-CODES-SERVICE
+    api-b:
+      path: /api-backtest/**
+      serviceId: TREND-TRADING-BACKTEST-SERVICE
+    api-c:
+      path: /api-view/**
+      serviceId: TREND-TRADING-BACKTEST-VIEW
+  host:
+    connect-timeout-millis: 7000
+    socket-timeout-millis: 7000
+
+ribbon:
+  ReadTimeout: 15000
+  ConnectTimeout: 60000
