@@ -6,7 +6,7 @@ spring:
   application:
     name: index-data-service
   redis:
-    host: 139.199.225.229
+    host: 127.0.0.1
     port: 6379
     jedis:
       pool:
