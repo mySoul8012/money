@@ -1,8 +1,11 @@
 package com.ming.service;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.ming.client.IndexDataClient;
+import com.ming.pojo.AnnualProfit;
 import com.ming.pojo.IndexData;
 import com.ming.pojo.Profit;
 import com.ming.pojo.Trade;
@@ -18,38 +21,20 @@ public class BackTestService {
 
     public List<IndexData> listIndexData(String code){
         List<IndexData> result = indexDataClient.getIndexData(code);
-        // 降序 排序
         Collections.reverse(result);
+
+
         return result;
     }
-
-
-    /**
-     * @param ma 均线
-     * @param sellRate 设置的卖出点
-     * @param buyRate 设置的买入点
-     * @param serviceCharge
-     * @param indexDatas
-     * @return
-     */
     public Map<String,Object> simulate(int ma, float sellRate, float buyRate, float serviceCharge, List<IndexData> indexDatas)  {
 
-
-        // 交易数组
+        List<Profit> profits =new ArrayList<>();
         List<Trade> trades = new ArrayList<>();
 
-
-        // 利润数组
-        List<Profit> profits =new ArrayList<>();
-        // 初始现金
         float initCash = 1000;
-        // 现金
         float cash = initCash;
-        // 份额
         float share = 0;
-        // 价值
         float value = 0;
-
 
         int winCount = 0;
         float totalWinRate = 0;
@@ -58,39 +43,25 @@ public class BackTestService {
         int lossCount = 0;
         float avgLossRate = 0;
 
-
-        // 初始值
         float init =0;
-
-        // 获取初始值，让其初始值相同
         if(!indexDatas.isEmpty())
             init = indexDatas.get(0).getClosePoint();
 
-        // 遍历数组
         for (int i = 0; i<indexDatas.size() ; i++) {
-            // 取出第一个数据
-            IndexData indexData = indexDatas.get(i);    // 550
-            // 找到收盘价
-            float closePoint = indexData.getClosePoint();   // 604
-            // 20 日均线
-            float avg = getMA(i,ma,indexDatas); // 581
-            // 20 日最大值
-            float max = getMax(i,ma,indexDatas);    // 606
+            IndexData indexData = indexDatas.get(i);
+            float closePoint = indexData.getClosePoint();
+            float avg = getMA(i,ma,indexDatas);
+            float max = getMax(i,ma,indexDatas);
 
-            // 当日增长幅度
-            float increase_rate = closePoint/avg;   // 604 / 581 = 1.2
-            // 当日亏的幅度
-            float decrease_rate = closePoint/max;   // 500 / 450 = 1.11
+            float increase_rate = closePoint/avg;
+            float decrease_rate = closePoint/max;
 
-            // 如果当前没有数据
             if(avg!=0) {
-                //如果购买超过的均线  buyRate =
-                if(increase_rate > buyRate  ) {
-                    //如果此时还没有买 如果份额等于0
+                //buy 超过了均线
+                if(increase_rate>buyRate  ) {
+                    //如果没买
                     if(0 == share) {
-                        // 当前的现金，除 当前的收盘价 得到当前购买的份额
                         share = cash / closePoint;
-                        // 买完以后，现金为0
                         cash = 0;
 
                         Trade trade = new Trade();
@@ -101,7 +72,7 @@ public class BackTestService {
                         trades.add(trade);
                     }
                 }
-                // 如果当日亏的幅度，小于卖点，卖出
+                //sell 低于了卖点
                 else if(decrease_rate<sellRate ) {
                     //如果没卖
                     if(0!= share){
@@ -132,25 +103,26 @@ public class BackTestService {
                 }
             }
 
-            // 那么份额为 0
             if(share!=0) {
                 value = closePoint * share;
             }
-            // 在份额为 0 的时候，现金和价值相等
             else {
                 value = cash;
             }
-            // 收益率
             float rate = value/initCash;
 
             Profit profit = new Profit();
             profit.setDate(indexData.getDate());
             profit.setValue(rate*init);
 
-            System.out.println("profit.value:" + profit.getValue());
-            // 放入集合里
             profits.add(profit);
+
         }
+
+        avgWinRate = totalWinRate / winCount;
+        avgLossRate = totalLossRate / lossCount;
+
+        List<AnnualProfit> annualProfits = caculateAnnualProfits(indexDatas, profits);
 
         Map<String,Object> map = new HashMap<>();
         map.put("profits", profits);
@@ -161,6 +133,7 @@ public class BackTestService {
         map.put("avgWinRate", avgWinRate);
         map.put("avgLossRate", avgLossRate);
 
+        map.put("annualProfits", annualProfits);
         return map;
     }
 
@@ -200,12 +173,6 @@ public class BackTestService {
         return avg;
     }
 
-
-    /**
-     * 获取当前多少年
-     * @param allIndexDatas
-     * @return
-     */
     public float getYear(List<IndexData> allIndexDatas) {
         float years;
         String sDateStart = allIndexDatas.get(0).getDate();
@@ -217,5 +184,68 @@ public class BackTestService {
         long days = DateUtil.between(dateStart, dateEnd, DateUnit.DAY);
         years = days/365f;
         return years;
+    }
+
+    private List<AnnualProfit> caculateAnnualProfits(List<IndexData> indexDatas, List<Profit> profits) {
+        List<AnnualProfit> result = new ArrayList<>();
+        String strStartDate = indexDatas.get(0).getDate();
+        String strEndDate = indexDatas.get(indexDatas.size()-1).getDate();
+
+        Date startDate = DateUtil.parse(strStartDate);
+        Date endDate = DateUtil.parse(strEndDate);
+
+        int startYear = DateUtil.year(startDate);
+        int endYear = DateUtil.year(endDate);
+
+        for (int year =startYear; year <= endYear; year++) {
+            AnnualProfit annualProfit = new AnnualProfit();
+            annualProfit.setYear(year);
+
+            float indexIncome = getIndexIncome(year,indexDatas);
+            float trendIncome = getTrendIncome(year,profits);
+            annualProfit.setIndexIncome(indexIncome);
+            annualProfit.setTrendIncome(trendIncome);
+            result.add(annualProfit);
+
+        }
+        return result;
+    }
+    private float getIndexIncome(int year, List<IndexData> indexDatas) {
+        IndexData first=null;
+        IndexData last=null;
+
+        for (IndexData indexData : indexDatas) {
+            String strDate = indexData.getDate();
+            int currentYear = getYear(strDate);
+
+            if(currentYear == year) {
+                if(null==first)
+                    first = indexData;
+                last = indexData;
+            }
+        }
+        return (last.getClosePoint() - first.getClosePoint()) / first.getClosePoint();
+    }
+    private float getTrendIncome(int year, List<Profit> profits) {
+        Profit first=null;
+        Profit last=null;
+
+        for (Profit profit : profits) {
+            String strDate = profit.getDate();
+            int currentYear = getYear(strDate);
+
+            if(currentYear == year) {
+                if(null==first)
+                    first = profit;
+                last = profit;
+            }
+            if(currentYear > year)
+                break;
+        }
+        return (last.getValue() - first.getValue()) / first.getValue();
+    }
+    private int getYear(String date) {
+        String strYear= StrUtil.subBefore(date, "-", false);
+        return Convert.toInt(strYear);
     }
 }

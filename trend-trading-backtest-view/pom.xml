@@ -12,6 +12,11 @@
 	<artifactId>trend-trading-backtest-view</artifactId>
 
 	<dependencies>
+		<!--zipkin-->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-zipkin</artifactId>
+		</dependency>
 		<!-- springboot web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -31,6 +36,11 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.9</version>
+		</dependency>
+		<!--config-client-->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
 		</dependency>
 	</dependencies>
 

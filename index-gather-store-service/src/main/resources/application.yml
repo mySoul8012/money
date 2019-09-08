@@ -14,3 +14,5 @@ spring:
     database: 0
   application:
     name: index-gather-store-service
+  zipkin:
+    base-url: http://localhost:9411

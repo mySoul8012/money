@@ -1,5 +1,6 @@
 package money;
 
+import brave.sampler.Sampler;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -25,5 +26,10 @@ public class IndexGatherStoreApplication {
     @Bean
     RestTemplate restTemplate() {
         return new RestTemplate();
+    }
+
+    @Bean
+    public Sampler defaultSampler() {
+        return Sampler.ALWAYS_SAMPLE;
     }
 }

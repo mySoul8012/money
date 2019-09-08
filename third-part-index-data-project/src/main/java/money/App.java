@@ -1,8 +1,10 @@
 package money;
 
+import brave.sampler.Sampler;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+import org.springframework.context.annotation.Bean;
 
 
 @SpringBootApplication
@@ -13,5 +15,10 @@ public class App
     {
         int port = 8090;
         new SpringApplicationBuilder(App.class).properties("server.port=" + port).run(args);
+    }
+
+    @Bean
+    public Sampler defaultSampler() {
+        return Sampler.ALWAYS_SAMPLE;
     }
 }
