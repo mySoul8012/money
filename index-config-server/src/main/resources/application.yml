@@ -6,7 +6,7 @@ spring:
       label: master
       server:
         git:
-          uri: https://github.com/how2j/trendConfig/
+          uri: https://github.com/mySoul8012/money-config/
           searchPaths: respo
 eureka:
   client:

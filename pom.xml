@@ -19,6 +19,9 @@
 	    <module>trend-trading-backtest-service</module>
 	    <module>trend-trading-backtest-view</module>
 	    <module>index-config-server</module>
+	    <module>util</module>
+	    <module>index-hystrix-dashboard</module>
+	    <module>index-turbine11</module>
     </modules>
 
     <name>money</name>
